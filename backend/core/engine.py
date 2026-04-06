@@ -162,8 +162,12 @@ async def _generate_seed(phenotype, problem: str, llm: LLMAdapter) -> Solution:
         system=(
             f"{phenotype.system_prompt}\n\n"
             "Propose ONE concrete, specific solution. "
-            "Do not hedge or list alternatives — commit to a single approach. "
-            "Be detailed enough that someone could actually implement it."
+            "Do not hedge or list alternatives — commit to a single approach.\n\n"
+            "Your solution will be evaluated on three dimensions — address all three:\n"
+            "1. NOVELTY: Explain what makes this meaningfully different from conventional approaches.\n"
+            "2. FEASIBILITY: Describe concretely how this would be implemented. What are the real costs and requirements?\n"
+            "3. ROBUSTNESS: Anticipate the strongest objection to your solution and address it directly.\n\n"
+            "Be specific enough that someone could actually implement it."
         ),
         user=f"Problem to solve: {problem}",
         temperature=0.95,

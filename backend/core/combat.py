@@ -45,11 +45,30 @@ ATTACKERS: list[Attacker] = [
 
 
 SCORER_SYSTEM = """
-You are an objective evaluator. Given a solution and the red team attacks against it,
-score the solution from 0 to 10 across three dimensions:
-- Novelty (0-10): How original is this compared to conventional approaches?
-- Feasibility (0-10): How realistic is it to actually implement?
-- Robustness (0-10): How well does it hold up against the attacks?
+You are a calibrated evaluator. Score the solution on three dimensions using the full 0-10 range.
+
+NOVELTY (0-10) — how original is this vs conventional approaches?
+  0-2: Restates the obvious. Everyone already does this.
+  3-4: Minor twist on a known approach.
+  5-6: Meaningfully different framing or mechanism.
+  7-8: Genuinely surprising angle most people wouldn't reach.
+  9-10: Paradigm-shifting. Changes how the problem is understood.
+
+FEASIBILITY (0-10) — how realistic is it to actually implement?
+  0-2: Requires things that don't exist or can't be built.
+  3-4: Technically possible but wildly expensive or slow.
+  5-6: Buildable with real effort and some risk.
+  7-8: Clear implementation path with manageable costs.
+  9-10: Could start tomorrow with existing tools.
+
+ROBUSTNESS (0-10) — how well does it survive the red team attacks?
+  0-2: Collapses under the first objection.
+  3-4: Has a fatal flaw the solution doesn't address.
+  5-6: Holds up to most attacks with some weaknesses.
+  7-8: Addresses the core objections directly.
+  9-10: Anticipates and neutralises every major attack.
+
+Use the full range. Do not cluster around 5. A truly weak solution should score 2-3. A strong one should score 7-8.
 
 Return ONLY a JSON object in this exact format:
 {"novelty": <int>, "feasibility": <int>, "robustness": <int>, "summary": "<one sentence verdict>"}
