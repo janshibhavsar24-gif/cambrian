@@ -122,9 +122,21 @@ async def run(config: RunConfig, on_event: EventCallback) -> tuple[Population, R
             log.add_seed(solution.id, solution.phenotype, solution.content, generation=gen + 1)
             seed_entry = log.seeds[-1]
             generator.append_seed(report_path, seed_entry)
+            await on_event(Event("seed", {
+                "id": solution.id,
+                "phenotype": solution.phenotype,
+                "content": solution.content,
+                "generation": gen + 1,
+            }))
         for entry in evo_entries:
             log.add_evolution(entry)
             generator.append_evolution(report_path, entry)
+            await on_event(Event("lineage", {
+                "child_id": entry.child_id,
+                "parent_ids": entry.parent_ids,
+                "type": entry.type,
+                "generation": entry.generation,
+            }))
 
         await on_event(Event("evolve", {
             "generation": gen + 1,

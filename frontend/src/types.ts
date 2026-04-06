@@ -40,12 +40,24 @@ export interface DoneData {
   top_solutions: Solution[];
 }
 
-// Node in the evolutionary tree
-export interface TreeNode {
+// ── Evolutionary tree types ────────────────────────────────────────────────
+
+export interface VizNode {
   id: string;
-  label: string;
+  label: string;         // phenotype name or "crossover" / "mutation"
   generation: number;
-  score: number;
+  score: number;         // 0 = not yet scored
   survived: boolean;
-  children: TreeNode[];
+  scored: boolean;       // false until combat result arrives
+}
+
+export interface VizEdge {
+  sourceId: string;
+  targetId: string;
+  type: "crossover" | "mutation";
+}
+
+export interface TreeData {
+  nodes: VizNode[];
+  edges: VizEdge[];
 }

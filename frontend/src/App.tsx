@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useCambrian } from "./hooks/useCambrian";
 import { EventFeed } from "./components/EventFeed/EventFeed";
 import { FinalResults } from "./components/FinalResults/FinalResults";
+import { EvolutionTree } from "./components/EvolutionTree/EvolutionTree";
 import styles from "./App.module.css";
 
 export default function App() {
   const [problem, setProblem] = useState("");
   const [generations, setGenerations] = useState(3);
-  const { status, events, solutions, reportPath, error, start, stop } = useCambrian();
+  const { status, events, solutions, reportPath, error, treeData, start, stop } = useCambrian();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +77,8 @@ export default function App() {
             <EventFeed events={events} />
           </div>
         )}
+
+        <EvolutionTree data={treeData} />
 
         <FinalResults solutions={solutions} reportPath={reportPath} />
       </main>
