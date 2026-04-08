@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Solution } from "../../types";
+import { ReportViewer } from "../ReportViewer/ReportViewer";
 import styles from "./FinalResults.module.css";
 
 interface Props {
@@ -72,6 +73,8 @@ export function FinalResults({ solutions, reportPath }: Props) {
           <SolutionCard key={sol.id} sol={sol} index={i} />
         ))}
       </div>
+
+      <ReportViewer reportPath={reportPath} />
     </div>
   );
 }

@@ -2,14 +2,12 @@
 FastAPI routes — REST + WebSocket interface to the Cambrian engine.
 """
 
-import asyncio
 import json
-import uuid
 from pathlib import Path
-from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 
 from backend.core.engine import run, RunConfig, Event
 
@@ -22,13 +20,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory store of active runs: run_id → list of buffered events
-_runs: dict[str, list[dict]] = {}
-
-
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
+
+
+@app.get("/api/report")
+def get_report(path: str) -> PlainTextResponse:
+    """Return the markdown content of a report file by path."""
+    report_path = Path(path)
+    if not report_path.exists() or not report_path.is_file():
+        raise HTTPException(status_code=404, detail="Report not found")
+    if not str(report_path).startswith("reports/"):
+        raise HTTPException(status_code=403, detail="Access denied")
+    return PlainTextResponse(report_path.read_text())
 
 
 @app.websocket("/ws/run")
