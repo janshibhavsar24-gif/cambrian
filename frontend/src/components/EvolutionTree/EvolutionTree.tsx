@@ -1,10 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
+import html2canvas from "html2canvas";
 import type { TreeData, VizNode, VizEdge } from "../../types";
 import styles from "./EvolutionTree.module.css";
 
 interface Props {
   data: TreeData;
+  problem?: string;
 }
 
 const COL_WIDTH = 200;
@@ -20,7 +22,7 @@ function scoreColor(score: number, scored: boolean): string {
   return "#ef4444";
 }
 
-function scoreTextColor(score: number, scored: boolean): string {
+function scoreTextColor(scored: boolean): string {
   if (!scored) return "#94a3b8";
   return "#fff";
 }
@@ -46,14 +48,19 @@ function layoutNodes(nodes: VizNode[]): Map<string, { x: number; y: number }> {
   return positions;
 }
 
-export function EvolutionTree({ data }: Props) {
+type ShareState = "idle" | "capturing" | "done" | "error";
+
+export function EvolutionTree({ data, problem }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [shareState, setShareState] = useState<ShareState>("idle");
+
+  const allScored = data.nodes.length > 0 && data.nodes.every(n => n.scored);
 
   useEffect(() => {
     if (!svgRef.current || data.nodes.length === 0) return;
 
     const positions = layoutNodes(data.nodes);
-
     const maxGen = Math.max(...data.nodes.map(n => n.generation));
     const maxNodesInGen = Math.max(
       ...Array.from({ length: maxGen }, (_, i) =>
@@ -68,19 +75,14 @@ export function EvolutionTree({ data }: Props) {
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 ${-svgH / 2} ${svgW} ${svgH}`);
 
-    // ── Edges ──────────────────────────────────────────────────────────────
-    const edgeGroup = svg.append("g").attr("class", "edges");
-
+    const edgeGroup = svg.append("g");
     data.edges.forEach((edge: VizEdge) => {
       const src = positions.get(edge.sourceId);
       const tgt = positions.get(edge.targetId);
       if (!src || !tgt) return;
-
       const mx = (src.x + tgt.x) / 2;
-      const path = `M ${src.x} ${src.y} C ${mx} ${src.y}, ${mx} ${tgt.y}, ${tgt.x} ${tgt.y}`;
-
       edgeGroup.append("path")
-        .attr("d", path)
+        .attr("d", `M ${src.x} ${src.y} C ${mx} ${src.y}, ${mx} ${tgt.y}, ${tgt.x} ${tgt.y}`)
         .attr("fill", "none")
         .attr("stroke", edge.type === "crossover" ? "#818cf8" : "#f472b6")
         .attr("stroke-width", 1.5)
@@ -88,12 +90,10 @@ export function EvolutionTree({ data }: Props) {
         .attr("opacity", 0.5);
     });
 
-    // ── Generation labels ──────────────────────────────────────────────────
     const labelGroup = svg.append("g");
     for (let g = 1; g <= maxGen; g++) {
-      const x = PAD_X + (g - 1) * COL_WIDTH;
       labelGroup.append("text")
-        .attr("x", x)
+        .attr("x", PAD_X + (g - 1) * COL_WIDTH)
         .attr("y", -svgH / 2 + 20)
         .attr("text-anchor", "middle")
         .attr("font-size", 11)
@@ -104,19 +104,15 @@ export function EvolutionTree({ data }: Props) {
         .text(`GEN ${g}`);
     }
 
-    // ── Nodes ──────────────────────────────────────────────────────────────
-    const nodeGroup = svg.append("g").attr("class", "nodes");
-
+    const nodeGroup = svg.append("g");
     data.nodes.forEach((node: VizNode) => {
       const pos = positions.get(node.id);
       if (!pos) return;
 
       const g = nodeGroup.append("g")
         .attr("transform", `translate(${pos.x}, ${pos.y})`)
-        .attr("opacity", node.scored && !node.survived ? 0.3 : 1)
-        .style("cursor", "default");
+        .attr("opacity", node.scored && !node.survived ? 0.3 : 1);
 
-      // Shadow / glow for survivors
       if (node.survived && node.scored) {
         g.append("circle")
           .attr("r", NODE_R + 4)
@@ -126,24 +122,21 @@ export function EvolutionTree({ data }: Props) {
           .attr("opacity", 0.25);
       }
 
-      // Main circle
       g.append("circle")
         .attr("r", NODE_R)
         .attr("fill", scoreColor(node.score, node.scored))
         .attr("stroke", node.survived && node.scored ? scoreColor(node.score, node.scored) : "#e2e8f0")
         .attr("stroke-width", node.survived && node.scored ? 0 : 1.5);
 
-      // Score or phenotype initial inside node
       g.append("text")
         .attr("text-anchor", "middle")
         .attr("dominant-baseline", "central")
         .attr("font-size", node.scored ? 12 : 10)
         .attr("font-weight", 700)
-        .attr("fill", scoreTextColor(node.score, node.scored))
+        .attr("fill", scoreTextColor(node.scored))
         .attr("font-family", "Inter, sans-serif")
         .text(node.scored ? node.score.toFixed(1) : node.label.slice(0, 2).toUpperCase());
 
-      // Label below node
       const shortLabel = node.label.length > 12 ? node.label.slice(0, 11) + "…" : node.label;
       g.append("text")
         .attr("y", NODE_R + 13)
@@ -156,6 +149,61 @@ export function EvolutionTree({ data }: Props) {
 
   }, [data]);
 
+  const handleShare = async () => {
+    if (!cardRef.current) return;
+    setShareState("capturing");
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+      });
+
+      // Add branding strip at bottom
+      const branded = document.createElement("canvas");
+      const strip = 48;
+      branded.width = canvas.width;
+      branded.height = canvas.height + strip;
+      const ctx = branded.getContext("2d")!;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, branded.width, branded.height);
+      ctx.drawImage(canvas, 0, 0);
+
+      // Bottom strip
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(0, canvas.height, branded.width, strip);
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "500 22px Inter, sans-serif";
+      ctx.textBaseline = "middle";
+      ctx.fillText("🧬 cambrian", 32, canvas.height + strip / 2);
+      ctx.font = "400 20px Inter, sans-serif";
+      ctx.fillStyle = "#cbd5e1";
+      ctx.textAlign = "right";
+      ctx.fillText("github.com/janshibhavsar24-gif/cambrian", branded.width - 32, canvas.height + strip / 2);
+
+      branded.toBlob(async (blob) => {
+        if (!blob) return;
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+          setShareState("done");
+        } catch {
+          // Clipboard failed — fallback to download
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "cambrian-tree.png";
+          a.click();
+          URL.revokeObjectURL(url);
+          setShareState("done");
+        }
+        setTimeout(() => setShareState("idle"), 2500);
+      }, "image/png");
+    } catch {
+      setShareState("error");
+      setTimeout(() => setShareState("idle"), 2500);
+    }
+  };
+
   if (data.nodes.length === 0) return null;
 
   const maxGen = Math.max(...data.nodes.map(n => n.generation));
@@ -167,17 +215,39 @@ export function EvolutionTree({ data }: Props) {
   const svgH = PAD_Y * 2 + maxNodesInGen * ROW_HEIGHT;
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} ref={cardRef}>
       <div className={styles.header}>
         <span className={styles.title}>Evolutionary Tree</span>
-        <div className={styles.legend}>
-          <span className={styles.legendItem}><span className={styles.dot} style={{ background: "#22c55e" }} />score ≥ 7</span>
-          <span className={styles.legendItem}><span className={styles.dot} style={{ background: "#f59e0b" }} />score 4–7</span>
-          <span className={styles.legendItem}><span className={styles.dot} style={{ background: "#ef4444" }} />score &lt; 4</span>
-          <span className={styles.legendItem}><span className={styles.line} style={{ background: "#818cf8" }} />crossover</span>
-          <span className={styles.legendItem}><span className={styles.dashed} />mutation</span>
+        <div className={styles.headerRight}>
+          <div className={styles.legend}>
+            <span className={styles.legendItem}><span className={styles.dot} style={{ background: "#22c55e" }} />≥ 7</span>
+            <span className={styles.legendItem}><span className={styles.dot} style={{ background: "#f59e0b" }} />4–7</span>
+            <span className={styles.legendItem}><span className={styles.dot} style={{ background: "#ef4444" }} />{"< 4"}</span>
+            <span className={styles.legendItem}><span className={styles.line} style={{ background: "#818cf8" }} />crossover</span>
+            <span className={styles.legendItem}><span className={styles.dashed} />mutation</span>
+          </div>
+          {allScored && (
+            <button
+              className={`${styles.shareBtn} ${shareState === "done" ? styles.shareDone : ""} ${shareState === "error" ? styles.shareError : ""}`}
+              onClick={handleShare}
+              disabled={shareState === "capturing"}
+            >
+              {shareState === "capturing" && "Capturing…"}
+              {shareState === "done" && "✓ Copied!"}
+              {shareState === "error" && "Failed"}
+              {shareState === "idle" && "Share ↗"}
+            </button>
+          )}
         </div>
       </div>
+
+      {problem && (
+        <div className={styles.problemBadge}>
+          <span className={styles.problemLabel}>Problem</span>
+          <span className={styles.problemText}>{problem}</span>
+        </div>
+      )}
+
       <div className={styles.scroll}>
         <svg
           ref={svgRef}

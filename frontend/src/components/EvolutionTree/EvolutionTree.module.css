@@ -13,8 +13,8 @@
   justify-content: space-between;
   padding: 14px 20px;
   border-bottom: 1px solid #f1f5f9;
+  gap: 12px;
   flex-wrap: wrap;
-  gap: 10px;
 }
 
 .title {
@@ -23,12 +23,20 @@
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .legend {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -61,6 +69,69 @@
   flex-shrink: 0;
 }
 
+/* ── Problem badge ── */
+.problemBadge {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.problemLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+
+.problemText {
+  font-size: 13px;
+  color: #475569;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* ── Share button ── */
+.shareBtn {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  flex-shrink: 0;
+}
+
+.shareBtn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.shareBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.shareDone {
+  background: linear-gradient(135deg, #16a34a, #15803d) !important;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3) !important;
+}
+
+.shareError {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* ── Tree scroll area ── */
 .scroll {
   overflow-x: auto;
   padding: 12px 20px 20px;

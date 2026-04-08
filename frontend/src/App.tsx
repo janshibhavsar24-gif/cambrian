@@ -107,7 +107,7 @@ export default function App() {
           </div>
         )}
 
-        <EvolutionTree data={treeData} />
+        <EvolutionTree data={treeData} problem={problem} />
 
         <FinalResults solutions={solutions} reportPath={reportPath} />
       </main>
