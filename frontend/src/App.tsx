@@ -5,6 +5,15 @@ import { FinalResults } from "./components/FinalResults/FinalResults";
 import { EvolutionTree } from "./components/EvolutionTree/EvolutionTree";
 import styles from "./App.module.css";
 
+const SUGGESTIONS = [
+  "How do you make AI agents reliable enough to trust with real tasks?",
+  "Why do most people quit learning something new after the first week?",
+  "How do you stop technical debt from killing a codebase?",
+  "How do you build trust between strangers on the internet?",
+  "How do you make open source financially sustainable?",
+  "How do you get people to actually change behaviour around something they know they should?",
+];
+
 export default function App() {
   const [problem, setProblem] = useState("");
   const [generations, setGenerations] = useState(3);
@@ -16,6 +25,7 @@ export default function App() {
   };
 
   const isRunning = status === "running";
+  const hasStarted = isRunning || events.length > 0;
 
   return (
     <div className={styles.page}>
@@ -34,6 +44,25 @@ export default function App() {
             disabled={isRunning}
             rows={3}
           />
+
+          {!hasStarted && (
+            <div className={styles.suggestions}>
+              <span className={styles.suggestionsLabel}>Try one of these</span>
+              <div className={styles.chips}>
+                {SUGGESTIONS.map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    className={styles.chip}
+                    onClick={() => setProblem(s)}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className={styles.controls}>
             <label className={styles.genLabel}>
               Generations
@@ -62,7 +91,7 @@ export default function App() {
 
         {error && <div className={styles.error}>{error}</div>}
 
-        {(isRunning || events.length > 0) && (
+        {hasStarted && (
           <div className={styles.feedSection}>
             <div className={styles.feedHeader}>
               <span className={styles.feedTitle}>Live Evolution</span>
