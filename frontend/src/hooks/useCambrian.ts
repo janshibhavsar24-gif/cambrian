@@ -105,7 +105,7 @@ export function useCambrian() {
         if (d.fitness_score === undefined) return;
 
         addLiveEvent("combat", `[${d.id}] scored`, d.fitness_score, d.generation);
-        upsertNode({ id: d.id, score: d.fitness_score, scored: true });
+        upsertNode({ id: d.id, score: d.fitness_score, scored: true, generation: d.generation });
 
       } else if (event.type === "cull") {
         const d = event.data as unknown as CullData;
