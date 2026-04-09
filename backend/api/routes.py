@@ -26,7 +26,7 @@ def health() -> dict:
     return {"status": "ok"}
 
 
-PROJECT_ROOT = Path(__file__).parent.parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 REPORTS_DIR = (PROJECT_ROOT / "reports").resolve()
 
 
