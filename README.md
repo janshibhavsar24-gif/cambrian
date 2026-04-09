@@ -124,7 +124,18 @@ Then open `http://localhost:5173`
 
 The web interface streams the full evolution live — every seed, every combat score, every generation transition — as it happens via WebSocket.
 
-When the run completes, the top solutions appear with full content, lineage, and score breakdown. A full report is saved to `reports/` automatically.
+### Features
+
+| Feature | Description |
+|---|---|
+| **Live event feed** | Real-time stream of every seed, combat result, and generation transition |
+| **Evolutionary tree** | D3.js visualization — nodes colored by score, edges show crossover vs mutation lineage |
+| **↺ Replay** | After a run, animate the entire evolution from scratch at your own pace |
+| **⏸ Pause / ▶ Resume** | Pause between generations to inspect survivors before continuing |
+| **Run History** | Every completed run is saved locally — browse, restore, and compare past runs |
+| **Top solutions** | TL;DR summary per solution shown by default, full content expandable |
+| **Full report** | View the complete markdown report in-browser, or download as a styled HTML file |
+| **Share tree** | Capture the evolutionary tree as a PNG with one click |
 
 ---
 
@@ -214,8 +225,15 @@ cambrian/
 │       └── generator.py     # incremental markdown writer
 ├── frontend/                # React + TypeScript (Vite)
 │   └── src/
-│       ├── hooks/useCambrian.ts   # WebSocket state management
-│       └── components/            # EventFeed, FinalResults
+│       ├── hooks/
+│       │   ├── useCambrian.ts     # WebSocket state, replay, pause/resume
+│       │   └── useRunHistory.ts   # localStorage run history
+│       └── components/
+│           ├── EvolutionTree/     # D3.js lineage visualization + replay
+│           ├── EventFeed/         # Live event stream
+│           ├── FinalResults/      # Top solutions with TL;DR cards
+│           ├── RunHistory/        # Past run browser
+│           └── ReportViewer/      # In-browser markdown report + HTML export
 └── cli/
     └── main.py              # Typer CLI
 ```
@@ -242,8 +260,10 @@ Contributions are welcome. High-value areas:
 
 - **New phenotypes** — add cognitive agent types in `backend/core/phenotypes.py`
 - **New attackers** — add red team agents in `backend/core/combat.py`
-- **Evolutionary tree visualization** — D3.js component showing idea lineage
+- **New phenotypes** — add cognitive agent types in `backend/core/phenotypes.py`
+- **New attackers** — add red team agents in `backend/core/combat.py`
 - **Multi-model support** — add OpenAI / Gemini / local model adapters
+- **Docker** — one-command startup for new users
 
 ---
 
