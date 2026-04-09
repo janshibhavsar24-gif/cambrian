@@ -138,3 +138,31 @@
   display: flex;
   justify-content: center;
 }
+
+/* ── Replay button ── */
+.replayBtn {
+  background: white;
+  color: #6366f1;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.replayBtn:hover:not(:disabled) {
+  background: #ede9fe;
+  border-color: #a5b4fc;
+}
+
+.replayBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.replaying {
+  color: #8b5cf6;
+  border-color: #a5b4fc;
+  background: #f5f3ff;
+}

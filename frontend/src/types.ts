@@ -1,4 +1,4 @@
-export type EventType = "seed" | "combat" | "cull" | "evolve" | "done" | "report" | "error";
+export type EventType = "seed" | "combat" | "cull" | "evolve" | "done" | "report" | "error" | "paused" | "resumed" | "lineage";
 
 export interface CambrianEvent {
   type: EventType;
@@ -60,4 +60,16 @@ export interface VizEdge {
 export interface TreeData {
   nodes: VizNode[];
   edges: VizEdge[];
+}
+
+// ── Run history ────────────────────────────────────────────────────────────
+
+export interface HistoryEntry {
+  id: string;
+  problem: string;
+  timestamp: number;
+  generations: number;
+  topScore: number;
+  solutions: Solution[];
+  treeData: TreeData;
 }

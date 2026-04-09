@@ -262,3 +262,110 @@
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.85); }
 }
+
+/* ── History button ── */
+.historyBtn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.historyBtn:hover {
+  background: #f8fafc;
+  border-color: #c7d2fe;
+  color: #6366f1;
+}
+
+/* ── Restored run banner ── */
+.restoredBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #ede9fe;
+  border: 1px solid #c4b5fd;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #5b21b6;
+}
+
+.restoredBanner em {
+  font-style: normal;
+  font-weight: 600;
+}
+
+.restoredBack {
+  background: white;
+  border: 1px solid #c4b5fd;
+  border-radius: 7px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6d28d9;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.restoredBack:hover { background: #f5f3ff; }
+
+/* ── Running controls (pause + stop) ── */
+.runningControls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.pauseBtn {
+  background: transparent;
+  color: #6366f1;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 10px;
+  padding: 11px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.pauseBtn:hover {
+  background: rgba(99, 102, 241, 0.05);
+  border-color: #6366f1;
+}
+
+.resumeBtn {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  transition: opacity 0.15s;
+}
+
+.resumeBtn:hover { opacity: 0.9; }
+
+/* ── Paused status badge ── */
+.pausedBadge {
+  font-size: 12px;
+  color: #6366f1;
+  font-weight: 600;
+}

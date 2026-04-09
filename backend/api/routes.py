@@ -2,6 +2,7 @@
 FastAPI routes — REST + WebSocket interface to the Cambrian engine.
 """
 
+import asyncio
 import json
 from pathlib import Path
 
@@ -46,14 +47,8 @@ async def run_websocket(websocket: WebSocket) -> None:
     WebSocket endpoint. Client sends a JSON message to start a run:
         {"problem": "...", "generations": 3}
 
-    Server streams events back in real time:
-        {"type": "seed",   "data": {...}}
-        {"type": "combat", "data": {...}}
-        {"type": "cull",   "data": {...}}
-        {"type": "evolve", "data": {...}}
-        {"type": "done",   "data": {...}}
-        {"type": "report", "data": {"path": "reports/cambrian_*.md"}}
-        {"type": "error",  "data": {"message": "..."}}
+    Server streams events back in real time. Client can also send:
+        {"action": "pause"} / {"action": "resume"}
     """
     await websocket.accept()
 
@@ -67,16 +62,35 @@ async def run_websocket(websocket: WebSocket) -> None:
             await websocket.send_json({"type": "error", "data": {"message": "problem is required"}})
             return
 
+        pause_event = asyncio.Event()
+        pause_event.set()
+
         async def on_event(event: Event) -> None:
             await websocket.send_json({"type": event.type, "data": event.data})
 
-        config = RunConfig(problem=problem, generations=generations)
-        population, log, report_path = await run(config, on_event)
+        async def listen_for_controls() -> None:
+            try:
+                while True:
+                    msg = await websocket.receive_text()
+                    data = json.loads(msg)
+                    action = data.get("action")
+                    if action == "pause":
+                        pause_event.clear()
+                    elif action == "resume":
+                        pause_event.set()
+            except Exception:
+                pass
 
-        await websocket.send_json({
-            "type": "report",
-            "data": {"path": str(report_path)},
-        })
+        config = RunConfig(problem=problem, generations=generations)
+        listener = asyncio.create_task(listen_for_controls())
+        try:
+            population, log, report_path = await run(config, on_event, pause_event)
+            await websocket.send_json({
+                "type": "report",
+                "data": {"path": str(report_path)},
+            })
+        finally:
+            listener.cancel()
 
     except WebSocketDisconnect:
         pass

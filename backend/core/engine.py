@@ -6,7 +6,7 @@ is lost if the run crashes mid-way.
 
 import asyncio
 from dataclasses import dataclass, field
-from typing import Callable, Awaitable
+from typing import Callable, Awaitable, Optional
 from pathlib import Path
 from backend.llm.adapter import LLMAdapter
 from backend.core.phenotypes import PHENOTYPES
@@ -41,7 +41,7 @@ async def _throttled(sem: asyncio.Semaphore, coro):
         return await coro
 
 
-async def run(config: RunConfig, on_event: EventCallback) -> tuple[Population, RunLog, Path]:
+async def run(config: RunConfig, on_event: EventCallback, pause_event: Optional[asyncio.Event] = None) -> tuple[Population, RunLog, Path]:
     llm = LLMAdapter()
     population = Population()
     log = RunLog(problem=config.problem, generations=config.generations)
@@ -114,6 +114,12 @@ async def run(config: RunConfig, on_event: EventCallback) -> tuple[Population, R
 
         if gen == config.generations:
             break
+
+        # Pause check — suspends between generations if frontend requests it
+        if pause_event is not None and not pause_event.is_set():
+            await on_event(Event("paused", {"generation": gen}))
+            await pause_event.wait()
+            await on_event(Event("resumed", {"generation": gen + 1}))
 
         # Evolve
         next_gen, evo_entries = await evolve(survivors, config.problem, gen + 1, llm)

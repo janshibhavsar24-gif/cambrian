@@ -7,6 +7,8 @@ import styles from "./EvolutionTree.module.css";
 interface Props {
   data: TreeData;
   problem?: string;
+  onReplay?: () => void;
+  isReplaying?: boolean;
 }
 
 const COL_WIDTH = 200;
@@ -50,7 +52,7 @@ function layoutNodes(nodes: VizNode[]): Map<string, { x: number; y: number }> {
 
 type ShareState = "idle" | "capturing" | "done" | "error";
 
-export function EvolutionTree({ data, problem }: Props) {
+export function EvolutionTree({ data, problem, onReplay, isReplaying }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [shareState, setShareState] = useState<ShareState>("idle");
@@ -226,6 +228,15 @@ export function EvolutionTree({ data, problem }: Props) {
             <span className={styles.legendItem}><span className={styles.line} style={{ background: "#818cf8" }} />crossover</span>
             <span className={styles.legendItem}><span className={styles.dashed} />mutation</span>
           </div>
+          {allScored && onReplay && (
+            <button
+              className={`${styles.replayBtn} ${isReplaying ? styles.replaying : ""}`}
+              onClick={onReplay}
+              disabled={isReplaying}
+            >
+              {isReplaying ? "Replaying…" : "↺ Replay"}
+            </button>
+          )}
           {allScored && (
             <button
               className={`${styles.shareBtn} ${shareState === "done" ? styles.shareDone : ""} ${shareState === "error" ? styles.shareError : ""}`}
