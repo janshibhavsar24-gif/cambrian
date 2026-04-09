@@ -18,16 +18,29 @@ function scoreColor(score: number): string {
 
 /** Extract a 1-2 sentence TL;DR from the full solution content */
 function extractTldr(content: string): string {
-  const trimmed = content.trim();
-  // Match up to 2 sentences (ending in . ! ?) within 300 chars
-  const match = trimmed.match(/^(.{40,280}[.!?])(?:\s|$)/);
-  if (match) return match[1];
-  // Fallback: first 200 chars at word boundary
-  if (trimmed.length > 200) {
-    const cut = trimmed.slice(0, 200);
-    return cut.slice(0, cut.lastIndexOf(" ")) + "…";
+  // Strip markdown: headers, bold, italic, code, bullets
+  const plain = content.trim()
+    .replace(/^#{1,4}\s+.+$/gm, "")       // remove header lines entirely
+    .replace(/\*\*(.+?)\*\*/g, "$1")       // bold
+    .replace(/\*(.+?)\*/g, "$1")           // italic
+    .replace(/`(.+?)`/g, "$1")             // inline code
+    .replace(/^[-*]\s+/gm, "")             // bullet points
+    .replace(/\n{2,}/g, " ")               // collapse blank lines
+    .replace(/\n/g, " ")                   // collapse single newlines
+    .trim();
+
+  // Try to grab the first sentence (ends in . ! ?)
+  const sentenceMatch = plain.match(/^(.{30,220}[.!?])\s/);
+  if (sentenceMatch) return sentenceMatch[1].trim();
+
+  // Fallback: hard cut at 160 chars at a word boundary
+  if (plain.length > 160) {
+    const cut = plain.slice(0, 160);
+    const lastSpace = cut.lastIndexOf(" ");
+    return (lastSpace > 80 ? cut.slice(0, lastSpace) : cut) + "…";
   }
-  return trimmed;
+
+  return plain;
 }
 
 function SolutionCard({ sol, index }: { sol: Solution; index: number }) {
