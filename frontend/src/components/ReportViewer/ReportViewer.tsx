@@ -71,8 +71,11 @@ export function ReportViewer({ reportPath }: Props) {
     setLoading(true);
     try {
       const res = await fetch(`http://localhost:8000/api/report?path=${encodeURIComponent(reportPath)}`);
+      if (!res.ok) throw new Error(`Failed to load report (${res.status})`);
       const text = await res.text();
       setMarkdown(text);
+    } catch (e) {
+      setMarkdown(`_Error loading report: ${(e as Error).message}_`);
     } finally {
       setLoading(false);
     }

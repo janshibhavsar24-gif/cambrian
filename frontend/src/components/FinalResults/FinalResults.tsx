@@ -9,7 +9,6 @@ interface Props {
 }
 
 const RANK_CLASS = ["gold", "silver", "bronze"];
-const PREVIEW_LENGTH = 400;
 
 function scoreColor(score: number): string {
   if (score >= 7) return "#16a34a";
@@ -17,12 +16,24 @@ function scoreColor(score: number): string {
   return "#ef4444";
 }
 
+/** Extract a 1-2 sentence TL;DR from the full solution content */
+function extractTldr(content: string): string {
+  const trimmed = content.trim();
+  // Match up to 2 sentences (ending in . ! ?) within 300 chars
+  const match = trimmed.match(/^(.{40,280}[.!?])(?:\s|$)/);
+  if (match) return match[1];
+  // Fallback: first 200 chars at word boundary
+  if (trimmed.length > 200) {
+    const cut = trimmed.slice(0, 200);
+    return cut.slice(0, cut.lastIndexOf(" ")) + "…";
+  }
+  return trimmed;
+}
+
 function SolutionCard({ sol, index }: { sol: Solution; index: number }) {
-  const [expanded, setExpanded] = useState(index === 0);
-  const isLong = sol.content.length > PREVIEW_LENGTH;
-  const displayContent = expanded || !isLong
-    ? sol.content
-    : sol.content.slice(0, PREVIEW_LENGTH) + "…";
+  const [expanded, setExpanded] = useState(false);
+  const tldr = extractTldr(sol.content);
+  const hasMore = sol.content.trim().length > tldr.length + 5;
 
   return (
     <div className={`${styles.card} ${index === 0 ? styles.top : ""} ${expanded ? styles.expanded : ""}`}>
@@ -43,9 +54,15 @@ function SolutionCard({ sol, index }: { sol: Solution; index: number }) {
 
       <div className={styles.divider} />
 
-      <p className={styles.content}>{displayContent}</p>
+      {!expanded && (
+        <p className={styles.tldr}>{tldr}</p>
+      )}
 
-      {isLong && (
+      {expanded && (
+        <p className={styles.content}>{sol.content}</p>
+      )}
+
+      {hasMore && (
         <button className={styles.toggle} onClick={() => setExpanded(v => !v)}>
           {expanded ? "Show less ↑" : "Read full solution ↓"}
         </button>

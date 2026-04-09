@@ -25,14 +25,18 @@ def health() -> dict:
     return {"status": "ok"}
 
 
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+REPORTS_DIR = (PROJECT_ROOT / "reports").resolve()
+
+
 @app.get("/api/report")
 def get_report(path: str) -> PlainTextResponse:
     """Return the markdown content of a report file by path."""
-    report_path = Path(path)
+    report_path = (PROJECT_ROOT / path).resolve()
+    if not str(report_path).startswith(str(REPORTS_DIR)):
+        raise HTTPException(status_code=403, detail="Access denied")
     if not report_path.exists() or not report_path.is_file():
         raise HTTPException(status_code=404, detail="Report not found")
-    if not str(report_path).startswith("reports/"):
-        raise HTTPException(status_code=403, detail="Access denied")
     return PlainTextResponse(report_path.read_text())
 
 
