@@ -263,6 +263,25 @@
   50% { opacity: 0.4; transform: scale(0.85); }
 }
 
+/* ── Demo button ── */
+.demoBtn {
+  background: transparent;
+  color: #6366f1;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 10px;
+  padding: 11px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.demoBtn:hover {
+  background: #ede9fe;
+  border-color: #a5b4fc;
+}
+
 /* ── History button ── */
 .historyBtn {
   position: absolute;

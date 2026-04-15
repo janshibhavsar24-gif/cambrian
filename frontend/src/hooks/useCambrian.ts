@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import type { CambrianEvent, Solution, SeedData, CombatData, CullData, EvolveData, TreeData, VizNode, VizEdge, HistoryEntry } from "../types";
+import { DEMO_PROBLEM, DEMO_EVENTS } from "../demo/demoData";
 
 export type RunStatus = "idle" | "running" | "done" | "error";
 
@@ -45,6 +46,7 @@ export function useCambrian() {
   const replayStepsRef = useRef<ReplayStep[]>([]);
   const treeSnapshotRef = useRef<TreeData>({ nodes: [], edges: [] });
   const replayAbortRef = useRef(false);
+  const demoAbortRef = useRef(false);
   const problemRef = useRef("");
   const generationsRef = useRef(3);
 
@@ -134,8 +136,97 @@ export function useCambrian() {
     wsRef.current?.send(JSON.stringify({ action: "resume" }));
   }, []);
 
+  const startDemo = useCallback(async () => {
+    if (wsRef.current) wsRef.current.close();
+    replayAbortRef.current = true;
+    demoAbortRef.current = false;
+
+    problemRef.current = DEMO_PROBLEM;
+    generationsRef.current = 2;
+    replayStepsRef.current = [];
+    treeSnapshotRef.current = { nodes: [], edges: [] };
+
+    setStatus("running");
+    setEvents([]);
+    setSolutions([]);
+    setReportPath(null);
+    setError(null);
+    setTreeData({ nodes: [], edges: [] });
+    setIsPaused(false);
+    setIsReplaying(false);
+    pendingEdgesRef.current = [];
+    counterRef.current = 0;
+
+    for (const { delay, type, data } of DEMO_EVENTS) {
+      if (demoAbortRef.current) return;
+      await new Promise<void>(r => setTimeout(r, delay));
+      if (demoAbortRef.current) return;
+
+      const event = { type, data } as CambrianEvent;
+
+      if (event.type === "seed") {
+        const d = event.data as unknown as SeedData;
+        addLiveEvent("seed", `Gen ${d.generation} · ${d.phenotype}`, undefined, d.generation);
+        upsertNode({ id: d.id, label: d.phenotype, generation: d.generation });
+        replayStepsRef.current.push({ t: "node", node: { id: d.id, label: d.phenotype, generation: d.generation, score: 0, survived: true, scored: false } });
+
+      } else if (event.type === "combat") {
+        const d = event.data as unknown as CombatData;
+        addLiveEvent("combat", `[${d.id}] scored`, d.fitness_score, d.generation);
+        upsertNode({ id: d.id, score: d.fitness_score, scored: true, generation: d.generation });
+        replayStepsRef.current.push({ t: "score", id: d.id, score: d.fitness_score });
+
+      } else if (event.type === "cull") {
+        const d = event.data as unknown as CullData;
+        addLiveEvent("cull", `Gen ${d.generation}: ${d.survivors} survived, ${d.eliminated} culled`, undefined, d.generation);
+
+      } else if (event.type === "lineage") {
+        const d = event.data as { child_id: string; parent_ids: string[]; type: string };
+        const edgeType = d.type === "crossover" ? "crossover" : "mutation";
+        d.parent_ids.forEach(parentId => {
+          const edge: VizEdge = { sourceId: parentId, targetId: d.child_id, type: edgeType };
+          addEdge(edge);
+          replayStepsRef.current.push({ t: "edge", edge });
+        });
+
+      } else if (event.type === "evolve") {
+        const d = event.data as unknown as EvolveData;
+        addLiveEvent("evolve", `Evolving → Gen ${d.generation} (${d.offspring} offspring)`, undefined, d.generation);
+
+      } else if (event.type === "done") {
+        const d = event.data as unknown as { top_solutions: Solution[] };
+        setSolutions(d.top_solutions);
+        const survivorIds = new Set(d.top_solutions.map(s => s.id));
+        replayStepsRef.current.push({ t: "survivors", ids: Array.from(survivorIds) });
+        setTreeData(prev => {
+          const finalTree = {
+            ...prev,
+            nodes: prev.nodes.map(n => ({
+              ...n,
+              survived: survivorIds.has(n.id) ? true : (n.scored ? false : n.survived),
+            })),
+          };
+          treeSnapshotRef.current = finalTree;
+          const entry: HistoryEntry = {
+            id: crypto.randomUUID(),
+            problem: DEMO_PROBLEM,
+            timestamp: Date.now(),
+            generations: 2,
+            topScore: Math.max(...d.top_solutions.map(s => s.score), 0),
+            solutions: d.top_solutions,
+            treeData: finalTree,
+          };
+          saveRunToHistory(entry);
+          return finalTree;
+        });
+        setStatus("done");
+      }
+    }
+  }, [addLiveEvent, upsertNode, addEdge]);
+
   const start = useCallback((problem: string, generations: number) => {
     if (wsRef.current) wsRef.current.close();
+    demoAbortRef.current = true;
     replayAbortRef.current = true;
 
     problemRef.current = problem;
@@ -262,9 +353,10 @@ export function useCambrian() {
 
   const stop = useCallback(() => {
     wsRef.current?.close();
+    demoAbortRef.current = true;
     setStatus("idle");
     setIsPaused(false);
   }, []);
 
-  return { status, events, solutions, reportPath, error, treeData, isReplaying, isPaused, start, stop, startReplay, pause, resume };
+  return { status, events, solutions, reportPath, error, treeData, isReplaying, isPaused, start, stop, startDemo, startReplay, pause, resume };
 }

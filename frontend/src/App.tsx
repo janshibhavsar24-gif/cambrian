@@ -4,6 +4,7 @@ import { EventFeed } from "./components/EventFeed/EventFeed";
 import { FinalResults } from "./components/FinalResults/FinalResults";
 import { EvolutionTree } from "./components/EvolutionTree/EvolutionTree";
 import { RunHistory } from "./components/RunHistory/RunHistory";
+import { DEMO_PROBLEM } from "./demo/demoData";
 import type { HistoryEntry } from "./types";
 import styles from "./App.module.css";
 
@@ -22,7 +23,7 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [restoredRun, setRestoredRun] = useState<HistoryEntry | null>(null);
 
-  const { status, events, solutions, reportPath, error, treeData, isReplaying, isPaused, start, stop, startReplay, pause, resume } = useCambrian();
+  const { status, events, solutions, reportPath, error, treeData, isReplaying, isPaused, start, stop, startDemo, startReplay, pause, resume } = useCambrian();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,6 +112,15 @@ export default function App() {
                   ))}
                 </select>
               </label>
+              {!isRunning && !hasStarted && (
+                <button
+                  type="button"
+                  className={styles.demoBtn}
+                  onClick={() => { setProblem(DEMO_PROBLEM); setRestoredRun(null); startDemo(); }}
+                >
+                  Try Demo →
+                </button>
+              )}
               {isRunning ? (
                 <div className={styles.runningControls}>
                   {isPaused ? (
