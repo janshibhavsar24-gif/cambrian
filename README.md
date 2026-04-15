@@ -70,44 +70,40 @@ Every seed, every attack, every score, every evolution step is written to a stru
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Python 3.9+
-- Node.js 18+
-- An [Anthropic API key](https://console.anthropic.com)
+### Option A — Docker (recommended)
 
-### 1. Clone & install
+The fastest way. No Python or Node setup required.
+
+**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) · An [Anthropic API key](https://console.anthropic.com)
+
+```bash
+git clone https://github.com/janshibhavsar24-gif/cambrian.git
+cd cambrian
+cp .env.claude.example .env   # then add your API key
+docker compose up
+```
+
+Open `http://localhost:5173` — done.
+
+---
+
+### Option B — Manual setup
+
+**Prerequisites:** Python 3.9+ · Node.js 18+ · An [Anthropic API key](https://console.anthropic.com)
 
 ```bash
 git clone https://github.com/janshibhavsar24-gif/cambrian.git
 cd cambrian
 
-# Backend
+# Install dependencies
 pip install -r requirements.txt
-
-# Frontend
 cd frontend && npm install && cd ..
-```
 
-### 2. Configure
-
-```bash
+# Configure
 cp .env.claude.example .env
 # Add your Anthropic API key to .env
 ```
 
-```env
-LLM_API_KEY=your_anthropic_api_key_here
-LLM_MODEL=claude-sonnet-4-6
-```
-
-### 3. Run
-
-**Option A — CLI (fastest)**
-```bash
-python3 -m cli.main evolve "How do you make AI agents reliable enough to trust with real tasks?"
-```
-
-**Option B — Web UI**
 ```bash
 # Terminal 1 — backend
 python3 -m backend.api.server
@@ -116,7 +112,15 @@ python3 -m backend.api.server
 cd frontend && npm run dev
 ```
 
-Then open `http://localhost:5173`
+Open `http://localhost:5173`
+
+---
+
+### Option C — CLI only
+
+```bash
+python3 -m cli.main evolve "How do you make AI agents reliable enough to trust with real tasks?"
+```
 
 ---
 
