@@ -10,6 +10,10 @@
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=flat-square)](https://python.org)
 [![Claude](https://img.shields.io/badge/Powered%20by-Claude-orange?style=flat-square)](https://anthropic.com)
 
+<br/>
+
+<video src="https://github.com/janshibhavsar24-gif/cambrian/raw/main/demo.mp4" autoplay loop muted playsinline width="100%"></video>
+
 </div>
 
 ---
