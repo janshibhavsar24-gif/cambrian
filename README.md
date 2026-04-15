@@ -12,7 +12,7 @@
 
 <br/>
 
-<video src="https://github.com/janshibhavsar24-gif/cambrian/raw/main/demo.mp4" autoplay loop muted playsinline width="100%"></video>
+[![Cambrian Demo](https://img.shields.io/badge/▶_Watch_Demo-6366f1?style=for-the-badge)](https://github.com/janshibhavsar24-gif/cambrian/raw/main/demo.mp4)
 
 </div>
 
